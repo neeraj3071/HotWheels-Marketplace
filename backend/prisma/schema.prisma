@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  GUEST
+  USER
+  ADMIN
+}
+
+enum ListingCondition {
+  NEW
+  LIKE_NEW
+  USED
+  DAMAGED
+}
+
+enum ListingRarity {
+  COMMON
+  UNCOMMON
+  RARE
+  ULTRA_RARE
+}
+
+enum ListingStatus {
+  ACTIVE
+  ARCHIVED
+  SOLD
+}
+
+model User {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  passwordHash   String
+  displayName    String
+  bio            String?         @db.Text
+  avatarUrl      String?
+  role           UserRole        @default(USER)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  listings       Listing[]
+  collection     CollectionItem[]
+  wishlist       WishlistItem[]
+  savedFilters   SavedFilter[]
+  messageThreads MessageThread[] @relation("ThreadParticipant")
+  sentMessages   Message[]       @relation("MessageSender")
+  refreshTokens  RefreshToken[]
+}
+
+model Listing {
+  id          String          @id @default(uuid())
+  title       String
+  description String          @db.Text
+  year        Int?
+  model       String
+  condition   ListingCondition
+  rarity      ListingRarity
+  priceCents  Int
+  images      String[]
+  ownerId     String
+  owner       User            @relation(fields: [ownerId], references: [id])
+  status      ListingStatus   @default(ACTIVE)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  wishlist    WishlistItem[]
+  collection  CollectionItem[]
+  messageThreads MessageThread[] @relation("ThreadListing")
+}
+
+model CollectionItem {
+  id          String   @id @default(uuid())
+  userId      String
+  listingId   String
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
+  listing     Listing  @relation(fields: [listingId], references: [id])
+
+  @@unique([userId, listingId])
+}
+
+model WishlistItem {
+  id          String   @id @default(uuid())
+  userId      String
+  listingId   String
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+  listing     Listing  @relation(fields: [listingId], references: [id])
+
+  @@unique([userId, listingId])
+}
+
+model SavedFilter {
+  id        String   @id @default(uuid())
+  name      String
+  criteria  Json
+  userId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model MessageThread {
+  id            String     @id @default(uuid())
+  listingId     String?
+  participants  User[]     @relation("ThreadParticipant")
+  messages      Message[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  listing       Listing?   @relation("ThreadListing", fields: [listingId], references: [id])
+}
+
+model Message {
+  id         String        @id @default(uuid())
+  threadId   String
+  senderId   String
+  body       String        @db.Text
+  createdAt  DateTime      @default(now())
+  thread     MessageThread @relation(fields: [threadId], references: [id])
+  sender     User          @relation("MessageSender", fields: [senderId], references: [id])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
