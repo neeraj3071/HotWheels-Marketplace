@@ -24,7 +24,7 @@
 
 **Production URL:** [To be deployed]
 
-**GitHub Repository:** [Add your repository URL here]
+**GitHub Repository:** [https://github.com/neeraj3071/HotWheels-Marketplace]
 
 ---
 
@@ -1540,8 +1540,6 @@ VALUES ('uuid-2', '1967 Camaro - Red Line Edition', 'Camaro', 'LIKE_NEW', 'ULTRA
 - VSCode (IDE)
 - Postman (API testing)
 - pgAdmin (database management)
-- ESLint (linting)
-- Prettier (formatting)
 
 ---
 

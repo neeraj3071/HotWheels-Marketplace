@@ -33,6 +33,7 @@ const listingSelect = {
   priceCents: true,
   images: true,
   status: true,
+  ownerId: true,
   createdAt: true,
   updatedAt: true,
   owner: {

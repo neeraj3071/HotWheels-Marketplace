@@ -121,3 +121,19 @@ export const adminUpdateListingStatus = async (
     throw error;
   }
 };
+
+export const getAdminStats = async () => {
+  const [totalUsers, totalListings, activeListings, totalMessages] = await Promise.all([
+    prisma.user.count(),
+    prisma.listing.count(),
+    prisma.listing.count({ where: { status: "ACTIVE" } }),
+    prisma.message.count()
+  ]);
+
+  return {
+    totalUsers,
+    totalListings,
+    activeListings,
+    totalMessages
+  };
+};

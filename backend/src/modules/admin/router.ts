@@ -15,12 +15,22 @@ import {
   adminArchiveListing,
   adminUpdateListingStatus,
   listUsersForAdmin,
-  updateUserRole
+  updateUserRole,
+  getAdminStats
 } from "./service";
 
 export const adminRouter = Router();
 
 adminRouter.use(authenticate, requireRole("ADMIN"));
+
+// Get admin statistics
+adminRouter.get(
+  "/stats",
+  catchAsync(async (req, res) => {
+    const stats = await getAdminStats();
+    res.status(200).json(stats);
+  })
+);
 
 adminRouter.get(
   "/users",

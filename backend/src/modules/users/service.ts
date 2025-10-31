@@ -297,3 +297,16 @@ export const updateSavedFilter = async (
 
   return updated;
 };
+
+export const getUserListings = async (userId: string) => {
+  const listings = await prisma.listing.findMany({
+    where: { 
+      ownerId: userId,
+      status: "ACTIVE"
+    },
+    select: listingSummarySelect,
+    orderBy: { createdAt: "desc" }
+  });
+
+  return listings;
+};

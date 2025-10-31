@@ -17,7 +17,7 @@ export const createListingSchema: ValidationSchema = {
     condition: z.enum(listingConditions),
     rarity: z.enum(listingRarities),
     priceCents: z.number().int().min(0),
-    images: z.array(z.string().url()).max(10).optional()
+    images: z.array(z.string()).max(10).optional() // Accept any string (URLs or base64)
   })
 };
 
@@ -36,7 +36,7 @@ export const updateListingSchema: ValidationSchema = {
     condition: z.enum(listingConditions).optional(),
     rarity: z.enum(listingRarities).optional(),
     priceCents: z.number().int().min(0).optional(),
-    images: z.array(z.string().url()).max(10).optional(),
+    images: z.array(z.string()).max(10).optional(), // Accept any string (URLs or base64)
     status: z.enum(listingStatuses).optional()
   })
 };

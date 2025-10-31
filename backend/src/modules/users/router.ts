@@ -21,6 +21,7 @@ import {
   deleteSavedFilter,
   getCurrentUserProfile,
   getPublicUserProfile,
+  getUserListings,
   listSavedFilters,
   listCollectionItems,
   listWishlistItems,
@@ -176,5 +177,13 @@ usersRouter.get(
   catchAsync(async (req, res) => {
     const user = await getPublicUserProfile(req.params.id);
     res.status(200).json(user);
+  })
+);
+
+usersRouter.get(
+  "/:id/listings",
+  catchAsync(async (req, res) => {
+    const listings = await getUserListings(req.params.id);
+    res.status(200).json(listings);
   })
 );
