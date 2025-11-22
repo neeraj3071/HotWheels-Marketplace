@@ -1,0 +1,141 @@
+config:
+  target: "http://localhost:4000"
+  phases:
+    # Warm up phase
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm up"
+    
+    # Ramp up phase
+    - duration: 120
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp up load"
+    
+    # Sustained high load
+    - duration: 180
+      arrivalRate: 50
+      name: "Sustained high load"
+    
+    # Spike test
+    - duration: 60
+      arrivalRate: 100
+      name: "Spike test"
+
+  # Performance thresholds
+  ensure:
+    maxErrorRate: 1 # Max 1% error rate
+    p95: 500 # 95th percentile response time < 500ms
+    p99: 1000 # 99th percentile response time < 1000ms
+
+scenarios:
+  # Authentication flow
+  - name: "User Authentication Flow"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/auth/register"
+          json:
+            email: "loadtest-{{ $randomString() }}@example.com"
+            password: "password123"
+            displayName: "Load Test User"
+          capture:
+            - json: "$.accessToken"
+              as: "token"
+      
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "neerajsa@umich.edu"
+            password: "Admin@123"
+          capture:
+            - json: "$.accessToken"
+              as: "loginToken"
+
+  # Browse listings
+  - name: "Browse Listings"
+    weight: 50
+    flow:
+      - get:
+          url: "/api/listings?page=1&limit=20"
+      
+      - get:
+          url: "/api/listings?condition=new&rarity=rare"
+      
+      - get:
+          url: "/api/listings?search=hot wheels&minPrice=5&maxPrice=50"
+      
+      - think: 2 # User reads for 2 seconds
+      
+      - get:
+          url: "/api/listings/{{ $randomString() }}"
+          expect:
+            - statusCode: [200, 404] # OK or not found is acceptable
+
+  # Authenticated user actions
+  - name: "Authenticated User Actions"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "neerajsa@umich.edu"
+            password: "Admin@123"
+          capture:
+            - json: "$.accessToken"
+              as: "authToken"
+      
+      - get:
+          url: "/api/users/me"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      
+      - get:
+          url: "/api/wishlist"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      
+      - get:
+          url: "/api/messages/threads"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+
+  # Create listing (write operations)
+  - name: "Create and Manage Listings"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "neerajsa@umich.edu"
+            password: "Admin@123"
+          capture:
+            - json: "$.accessToken"
+              as: "authToken"
+      
+      - post:
+          url: "/api/listings"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            title: "Load Test Car {{ $randomString() }}"
+            description: "Performance testing listing"
+            price: "{{ $randomNumber(5, 100) }}"
+            condition: "new"
+            rarity: "common"
+            category: "muscle"
+          capture:
+            - json: "$.id"
+              as: "listingId"
+      
+      - get:
+          url: "/api/listings/{{ listingId }}"
+      
+      - think: 1
+      
+      - patch:
+          url: "/api/listings/{{ listingId }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+          json:
+            price: "{{ $randomNumber(10, 150) }}"

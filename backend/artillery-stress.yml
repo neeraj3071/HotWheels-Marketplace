@@ -1,0 +1,35 @@
+config:
+  target: "http://localhost:4000"
+  phases:
+    # Rapid spike to test system under extreme load
+    - duration: 30
+      arrivalRate: 200
+      name: "Extreme spike"
+
+  ensure:
+    maxErrorRate: 5 # Allow 5% error rate during stress
+    p95: 2000 # Allow higher latency
+
+scenarios:
+  - name: "Heavy concurrent load"
+    weight: 100
+    flow:
+      - get:
+          url: "/api/listings?page={{ $randomNumber(1, 10) }}&limit=50"
+      
+      - get:
+          url: "/api/listings?search=car"
+      
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "neerajsa@umich.edu"
+            password: "Admin@123"
+          capture:
+            - json: "$.accessToken"
+              as: "token"
+      
+      - get:
+          url: "/api/users/me"
+          headers:
+            Authorization: "Bearer {{ token }}"

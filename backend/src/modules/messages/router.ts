@@ -24,7 +24,7 @@ messagesRouter.get(
   "/threads",
   catchAsync(async (req, res) => {
     const threads = await listThreadsForUser(req.user!.id);
-    res.status(200).json({ threads });
+    res.status(200).json(threads);
   })
 );
 
@@ -51,7 +51,7 @@ messagesRouter.get(
       req.user!.id,
       limit
     );
-    res.status(200).json({ messages });
+    res.status(200).json(messages);
   })
 );
 
