@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MessageCircle, Send } from 'lucide-react';
 import { api } from '@/lib/api';
@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDate } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth';
 
-export default function MessagesPage() {
+function MessagesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = useAuthStore((state) => state.user);
@@ -345,5 +345,20 @@ export default function MessagesPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={
+      <div className="h-[calc(100vh-4rem)] bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <MessageCircle className="h-12 w-12 mx-auto mb-4 text-gray-300 animate-pulse" />
+          <p className="text-gray-500">Loading messages...</p>
+        </div>
+      </div>
+    }>
+      <MessagesPageContent />
+    </Suspense>
   );
 }
